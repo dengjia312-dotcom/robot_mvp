@@ -1,0 +1,616 @@
+﻿<!DOCTYPE html>
+<html class="dark" lang="zh-Hans">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>RD-07 任务详情 - Mission Control</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-background": "#dae2fd",
+                        "on-primary": "#002b75",
+                        "surface-container-high": "#222a3d",
+                        "tertiary": "#ffb95f",
+                        "inverse-surface": "#dae2fd",
+                        "primary": "#0066FF",
+                        "on-secondary": "#003824",
+                        "surface-dim": "#0b1326",
+                        "on-tertiary": "#472a00",
+                        "on-tertiary-container": "#fff7f1",
+                        "secondary-container": "#00a572",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "inverse-on-surface": "#283044",
+                        "surface-container-lowest": "#060e20",
+                        "surface-tint": "#0066FF",
+                        "secondary-fixed": "#6ffbbe",
+                        "error-container": "#93000a",
+                        "on-error": "#690005",
+                        "surface-container-highest": "#2d3449",
+                        "secondary": "#4edea3",
+                        "secondary-fixed-dim": "#4edea3",
+                        "on-surface-variant": "#c2c6d8",
+                        "inverse-primary": "#0054d6",
+                        "on-secondary-fixed-variant": "#005236",
+                        "surface": "#0b1326",
+                        "on-primary-container": "#f8f7ff",
+                        "surface-bright": "#31394d",
+                        "tertiary-container": "#a06500",
+                        "outline": "#8c90a1",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "outline-variant": "#424656",
+                        "on-tertiary-fixed": "#2a1700",
+                        "primary-container": "#0066ff",
+                        "primary-fixed": "#dae1ff",
+                        "error": "#ffb4ab",
+                        "on-primary-fixed-variant": "#003fa4",
+                        "surface-container-low": "#131b2e",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-fixed": "#001849",
+                        "tertiary-fixed": "#ffddb8",
+                        "background": "#0b1326",
+                        "on-secondary-container": "#00311f",
+                        "on-secondary-fixed": "#002113",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-variant": "#2d3449",
+                        "surface-container": "#171f33",
+                        "on-surface": "#dae2fd"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "1rem"},
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .tnum { font-variant-numeric: tabular-nums; }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #c2c6d8;
+        }
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-height: 1.75rem;
+            padding: 0.375rem 0.625rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(66, 70, 86, 0.24);
+            background: rgba(23, 31, 51, 0.92);
+            font-size: 0.625rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+        .status-chip-dot {
+            width: 0.375rem;
+            height: 0.375rem;
+            border-radius: 9999px;
+            flex-shrink: 0;
+        }
+        .status-chip-secondary { color: #4edea3; border-color: rgba(78, 222, 163, 0.2); }
+        .status-chip-secondary .status-chip-dot { background: #4edea3; box-shadow: 0 0 8px #4edea3; }
+        .control-button {
+            min-height: 3rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            transition: all 160ms ease;
+        }
+        .control-button-primary {
+            background: #0066ff;
+            color: #f8f7ff;
+            box-shadow: 0 12px 24px rgba(0, 102, 255, 0.2);
+        }
+        .control-button-primary:hover { filter: brightness(1.08); }
+        .control-button-secondary {
+            background: #31394d;
+            color: #dae2fd;
+            border: 1px solid rgba(66, 70, 86, 0.3);
+        }
+        .control-button-secondary:hover { background: #2d3449; }
+        .danger-zone {
+            margin-top: 2rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid rgba(255, 180, 171, 0.18);
+        }
+        .danger-zone-label {
+            margin-bottom: 0.75rem;
+            font-size: 0.625rem;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: rgba(255, 180, 171, 0.8);
+        }
+        .danger-button {
+            min-height: 3rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 180, 171, 0.28);
+            background: rgba(147, 0, 10, 0.18);
+            color: #ffb4ab;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            transition: all 160ms ease;
+        }
+        .danger-button:hover { background: rgba(147, 0, 10, 0.28); }
+        .led-glow { box-shadow: 0 0 12px currentColor; }
+        .map-grid {
+            background-image: radial-gradient(circle, rgba(66, 70, 86, 0.2) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .progress-bar-glow {
+            box-shadow: 0 0 12px rgba(0, 102, 255, 0.4);
+        }
+        .timeline-step {
+            transition: opacity 180ms ease, transform 180ms ease, color 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        }
+        .timeline-step[data-state="done"] { opacity: 0.78; }
+        .timeline-step[data-state="upcoming"] { opacity: 0.42; }
+        .timeline-step[data-state="active"] { opacity: 1; }
+        .timeline-step[data-state="active"] .step-node {
+            width: 4rem;
+            height: 4rem;
+            top: -0.5rem;
+            background: #0066ff;
+            color: #f8f7ff;
+            border-color: rgba(179, 197, 255, 0.35);
+            box-shadow: 0 0 25px rgba(0, 102, 255, 0.42);
+        }
+        .timeline-step[data-state="active"] .step-icon { animation: bounce 1.5s infinite; }
+        .timeline-step[data-state="active"] .step-title { color: #0066ff; }
+        .timeline-step[data-state="active"] .step-badge { display: inline-flex; }
+        .timeline-step[data-state="done"] .step-node {
+            background: rgba(0, 102, 255, 0.12);
+            color: #0066ff;
+            border-color: rgba(0, 102, 255, 0.7);
+        }
+        .timeline-step[data-state="done"] .step-title { color: #6fa3ff; }
+        .timeline-step[data-state="upcoming"] .step-node {
+            background: #2d3449;
+            color: #c2c6d8;
+            border-color: rgba(66, 70, 86, 0.35);
+        }
+        .timeline-step[data-state="upcoming"] .step-badge { display: none; }
+        .status-toast {
+            transition: opacity 180ms ease, transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+        }
+        .status-toast[data-tone="info"] {
+            background: rgba(0, 102, 255, 0.12);
+            border-color: rgba(0, 102, 255, 0.28);
+            color: #dae2fd;
+        }
+        .status-toast[data-tone="success"] {
+            background: rgba(78, 222, 163, 0.12);
+            border-color: rgba(78, 222, 163, 0.28);
+            color: #dae2fd;
+        }
+        .status-toast[data-tone="warn"] {
+            background: rgba(255, 185, 95, 0.12);
+            border-color: rgba(255, 185, 95, 0.28);
+            color: #dae2fd;
+        }
+        .status-toast[data-tone="danger"] {
+            background: rgba(147, 0, 10, 0.18);
+            border-color: rgba(255, 180, 171, 0.28);
+            color: #ffdad6;
+        }
+        .nav-link {
+            position: relative;
+            color: rgba(218, 226, 253, 0.62);
+            transition: color 160ms ease;
+        }
+        .nav-link:hover { color: #f8f7ff; }
+        .nav-link[data-active="true"] { color: #f8f7ff; }
+        .nav-link[data-active="true"]::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -18px;
+            height: 2px;
+            background: #0066ff;
+            box-shadow: 0 0 10px rgba(0, 102, 255, 0.4);
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 102, 255, 0.2);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container overflow-hidden h-screen flex flex-col">
+<header class="bg-[#0b1326] flex justify-between items-center w-full px-6 h-14 border-b border-outline-variant/10 shrink-0">
+    <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-primary text-2xl">precision_manufacturing</span>
+            <div class="text-base font-bold tracking-tight text-[#f8f7ff]">MISSION CONTROL</div>
+        </div>
+        <nav class="hidden md:flex items-center gap-6 text-sm font-semibold">
+            <a class="nav-link" href="../_1/code.html" data-active="false">任务总览</a>
+            <a class="nav-link" href="../_2/code.html" data-active="true">任务详情</a>
+            <a class="nav-link" href="../_03/code.html" data-active="false">异常处理</a>
+            <a class="nav-link" href="#" data-active="false">运营分析</a>
+            <a class="nav-link" href="#" data-active="false">系统日志</a>
+        </nav>
+    </div>
+    <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2 px-3 py-1.5 bg-secondary/5 rounded-lg border border-secondary/20">
+            <span class="w-2 h-2 rounded-full bg-secondary led-glow"></span>
+            <span class="text-[10px] font-black text-secondary tracking-widest">系统健康：正常</span>
+        </div>
+        <div class="flex items-center gap-2 px-3 py-1 bg-surface-container rounded-lg border border-outline-variant/20">
+            <span class="material-symbols-outlined text-tertiary text-sm">schedule</span>
+            <span class="font-mono text-xs text-on-surface font-medium tnum">14:28:45</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="p-1.5 text-[#f8f7ff]/70 hover:bg-[#31394d] rounded-full transition-all" type="button">
+                <span class="material-symbols-outlined text-xl">settings</span>
+            </button>
+            <div class="flex items-center gap-2 bg-[#31394d] px-2 py-1 rounded-full border border-outline-variant/20">
+                <img alt="Operator" class="w-6 h-6 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUKGtQ-QNzHt3HqLCh0lB61hJI3lFoG_2U8leVw32DHSFhxdw-lfEzh2zLmtHHeuHz75r1V1AIuRavzKMrF1qRzfeetCQ-BD9HakalqB-vznQeM2qhoY4pR8Xt1WqkZG-a6TBEsZa2vAeZTrEwOasBfd211GZIs1D4NeRzqrN_gFHAsEpBVNSoJVEtMSWK0lJmI3wj5xia85L2bA_1r-U8LPr5BNaNLEyaQ9Y-2R85ZrXLuKq7eOYNYcwFFyJZO33OGLHKoC_fnh4"/>
+                <span class="text-xs font-medium pr-1 text-[#f8f7ff]">管理员</span>
+            </div>
+        </div>
+    </div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+    <main class="flex-1 flex flex-col p-6 gap-6 overflow-y-auto">
+        <section class="bg-surface-container-high rounded-xl p-6 border border-outline-variant/20 shadow-2xl relative overflow-hidden shrink-0">
+            <div class="absolute top-0 right-0 p-4 opacity-30">
+                <span class="text-xs text-on-surface-variant font-mono">任务编号: RD-07-2024-0012</span>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-5 flex items-center gap-8 border-r border-outline-variant/10">
+                    <div class="w-20 h-20 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shadow-inner border border-primary/20 shrink-0">
+                        <span class="material-symbols-outlined text-5xl">local_shipping</span>
+                    </div>
+                    <div class="space-y-3 w-full">
+                        <div class="flex items-center gap-3">
+                            <span class="status-chip status-chip-secondary" id="taskStatusText"><span class="status-chip-dot"></span>执行中</span>
+                            <h1 class="text-3xl font-semibold text-on-surface tracking-tight">文件递送任务</h1>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-xl">location_on</span>
+                            <span class="text-2xl font-bold text-on-surface">12F A16 会议室</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-x-6 gap-y-3 pt-1 text-sm">
+                            <div>
+                                <p class="text-[10px] font-black tracking-widest text-on-surface-variant uppercase mb-1">任务状态</p>
+                                <p class="font-bold text-on-surface" id="taskStatusField">执行中</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black tracking-widest text-on-surface-variant uppercase mb-1">人工介入状态</p>
+                                <p class="font-bold text-on-surface" id="humanStatusText">无需介入</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black tracking-widest text-on-surface-variant uppercase mb-1">当前步骤</p>
+                                <p class="font-bold text-primary" id="currentPhaseText">前往12层</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black tracking-widest text-on-surface-variant uppercase mb-1">下一步</p>
+                                <p class="font-bold text-on-surface" id="nextStepText">到达目标点</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black tracking-widest text-on-surface-variant uppercase mb-1">风险等级</p>
+                                <p class="font-bold text-secondary" id="riskLevelText">低风险</p>
+                            </div>
+                            <div class="col-span-2">
+                                <p class="text-[10px] font-black tracking-widest text-on-surface-variant uppercase mb-1">状态解释</p>
+                                <p class="font-medium text-primary-fixed-dim leading-6" id="statusExplainText">机器人正在前往 12 层，并等待进入 E04 电梯。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-4 flex flex-col justify-center px-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="section-title">任务进度</span>
+                        <span class="text-3xl font-black text-primary font-mono tnum" id="progressValue">62%</span>
+                    </div>
+                    <div class="w-full h-4 bg-surface-container-highest rounded-full overflow-hidden p-0.5 border border-outline-variant/10 shadow-inner">
+                        <div class="h-full bg-primary progress-bar-glow rounded-full transition-all duration-500 relative" id="progressBar" style="width: 62%">
+                            <div class="absolute inset-0 bg-gradient-to-r from-white/0 to-white/20"></div>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-sm">directions_run</span>
+                        <span class="text-sm font-bold text-primary">状态流转可点击切换</span>
+                    </div>
+                </div>
+                <div class="lg:col-span-3 bg-surface-container-lowest/50 rounded-xl p-6 border border-outline-variant/10 flex flex-col items-center justify-center">
+                    <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">预计剩余时间</span>
+                    <div class="text-5xl font-black text-on-surface font-mono tnum tracking-tighter" id="etaValue">04:12</div>
+                </div>
+            </div>
+        </section>
+        <section class="bg-surface-container rounded-xl p-6 border border-outline-variant/10">
+            <div class="flex items-center justify-between mb-10">
+                <h2 class="section-title">
+                    <span class="material-symbols-outlined text-base text-primary">route</span>
+                    任务状态流转
+                </h2>
+                <span class="text-[10px] px-2 py-1 rounded border border-primary/20 bg-primary/10 text-primary font-bold tracking-widest">可点击切换当前步骤</span>
+            </div>
+            <div class="relative px-12">
+                <div class="absolute top-6 left-20 right-20 h-1 bg-surface-container-highest rounded-full">
+                    <div class="h-full bg-primary rounded-full transition-all duration-500" id="timelineProgress" style="width: 50%"></div>
+                </div>
+                <div class="relative flex justify-between" id="timelineSteps">
+                    <button class="timeline-step flex flex-col items-center text-left" data-index="0" data-state="done" data-progress="25" data-phase="已收件" data-eta="06:45" type="button">
+                        <div class="step-node w-12 h-12 border-2 rounded-xl flex items-center justify-center z-10 shadow-lg">
+                            <span class="material-symbols-outlined step-icon text-2xl">inventory_2</span>
+                        </div>
+                        <div class="mt-4 text-sm font-bold step-title">已收件</div>
+                        <div class="text-[10px] text-on-surface-variant/60 font-mono mt-1">14:15:32</div>
+                        <div class="step-badge hidden text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full font-black mt-2">当前步骤</div>
+                    </button>
+                    <button class="timeline-step flex flex-col items-center text-left" data-index="1" data-state="active" data-progress="62" data-phase="前往12层" data-eta="04:12" type="button">
+                        <div class="step-node w-12 h-12 border-2 rounded-xl flex items-center justify-center z-10 shadow-lg relative">
+                            <span class="material-symbols-outlined step-icon text-2xl">elevator</span>
+                        </div>
+                        <div class="mt-4 text-sm font-bold step-title">前往12层</div>
+                        <div class="step-badge hidden text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full font-black mt-2">进行中：进入 E04 电梯</div>
+                    </button>
+                    <button class="timeline-step flex flex-col items-center text-left" data-index="2" data-state="upcoming" data-progress="82" data-phase="到达目标点" data-eta="02:06" type="button">
+                        <div class="step-node w-12 h-12 border-2 rounded-xl flex items-center justify-center z-10">
+                            <span class="material-symbols-outlined step-icon text-2xl">meeting_room</span>
+                        </div>
+                        <div class="mt-4 text-sm font-bold step-title">到达目标点</div>
+                        <div class="text-[10px] font-mono mt-1 text-on-surface-variant/60">预计 14:32</div>
+                        <div class="step-badge hidden text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full font-black mt-2">当前步骤</div>
+                    </button>
+                    <button class="timeline-step flex flex-col items-center text-left" data-index="3" data-state="upcoming" data-progress="100" data-phase="送达签收" data-eta="00:00" type="button">
+                        <div class="step-node w-12 h-12 border-2 rounded-xl flex items-center justify-center z-10">
+                            <span class="material-symbols-outlined step-icon text-2xl">verified</span>
+                        </div>
+                        <div class="mt-4 text-sm font-bold step-title">送达签收</div>
+                        <div class="text-[10px] font-mono mt-1 text-on-surface-variant/60">待定</div>
+                        <div class="step-badge hidden text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full font-black mt-2">当前步骤</div>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
+            <div class="bg-surface-container rounded-xl overflow-hidden border border-outline-variant/10 flex flex-col h-[320px]">
+                <div class="px-4 py-3 bg-surface-container-highest/50 flex justify-between items-center border-b border-outline-variant/10">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-sm">explore</span>
+                        <span class="section-title">辅助导航：12F 实时平面图</span>
+                    </div>
+                    <div class="flex bg-surface-container p-1 rounded-lg border border-outline-variant/10">
+                        <button class="px-3 py-1 bg-primary text-on-primary rounded shadow-sm text-[10px] font-black" type="button">2D</button>
+                        <button class="px-3 py-1 text-on-surface-variant text-[10px] font-black" type="button">3D</button>
+                    </div>
+                </div>
+                <div class="flex-1 relative bg-surface-container-lowest map-grid overflow-hidden">
+                    <img alt="Map" class="w-full h-full object-cover opacity-20 grayscale scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAM1d_6gMe-dBPYiENg4o5vox6Yxb5-W_-_Jt-C0vOInMMaGrd9POGdpFkJVmQGQwzvIiedeYg-tspOU_bEpCqG-woMXPcrvsl3MX3p6eHOr1joe7kezp0XQMqBYdbbNXnsfQn-8iEZuyMsEXi8auG8vmvn3KwG7n1HHGQjTIf5_B2WhIMpqbxgkjx944_lyjcD5xDAToZSv5QcTkwjZPhqBKmrAMg_PSVSWfF0Ehk-YqTNZJIzbTjc3Fb7qAIOYjnijsS9VRpeTuw"/>
+                    <div class="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2">
+                        <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,102,255,0.6)] border-2 border-white/40">
+                            <span class="material-symbols-outlined text-base text-on-primary">smart_toy</span>
+                        </div>
+                    </div>
+                    <div class="absolute top-1/4 right-1/4">
+                        <span class="material-symbols-outlined text-secondary text-2xl drop-shadow-lg">location_on</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-surface-container rounded-xl overflow-hidden border border-outline-variant/10 flex flex-col h-[320px]">
+                <div class="px-4 py-3 bg-surface-container-highest/50 flex justify-between items-center border-b border-outline-variant/10">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-error text-sm">videocam</span>
+                        <span class="section-title">实时视频（前视摄像头）</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+                        <span class="text-[10px] font-mono text-on-surface-variant">4K 60FPS</span>
+                    </div>
+                </div>
+                <div class="flex-1 bg-black relative group">
+                    <img alt="Robot POV" class="w-full h-full object-cover opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGketlkYI5QDmJiA3r_ulOHoIvX13xlebgMrWma7-MYupqDLT-nER6AAZR09P-RJyFsh6pt9YH4r7wybRWInBCRp2ltUuHQXxbgopcd55UHo-tpNMsn3bjw5shQwO-3MJHMaw1NNMxZ8c2_eK5YOqXU8sUacE5gckhTvI40YUj23zkO5K8Mev6XjrpFd0MfkPSJP4RCrHkO3dallQdHvqsnkxVztA27umLXaZ4oEfrgreqMSPrgtP3n0QyYYMS1JApMXhfzboH2-o"/>
+                    <div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer backdrop-blur-sm">
+                        <span class="material-symbols-outlined text-white text-4xl">zoom_in</span>
+                    </div>
+                    <div class="absolute bottom-4 left-4 flex gap-4">
+                        <div class="bg-black/60 backdrop-blur-md px-3 py-1 rounded border border-white/10 text-[10px] font-mono">
+                            <span class="text-white/60">障碍距离:</span> <span class="text-secondary">2.4m</span>
+                        </div>
+                        <div class="bg-black/60 backdrop-blur-md px-3 py-1 rounded border border-white/10 text-[10px] font-mono">
+                            <span class="text-white/60">速度:</span> <span class="text-white">0.8m/s</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <aside class="w-80 bg-surface-container-lowest border-l border-outline-variant/10 flex flex-col shrink-0 shadow-2xl">
+        <section class="p-6 border-b border-outline-variant/10 bg-surface-container-low/30">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="section-title">
+                    <span class="material-symbols-outlined text-base">analytics</span>
+                    核心系统指标
+                </h2>
+                <span class="status-chip status-chip-secondary"><span class="status-chip-dot"></span>健康运行</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="p-3 bg-surface-container rounded-lg border border-outline-variant/10">
+                    <div class="flex items-center justify-between text-on-surface-variant mb-1">
+                        <span class="text-[10px] font-bold">剩余电量</span>
+                        <span class="material-symbols-outlined text-sm text-secondary">battery_full</span>
+                    </div>
+                    <div class="text-2xl font-black text-on-surface font-mono">82<span class="text-xs ml-0.5">%</span></div>
+                </div>
+                <div class="p-3 bg-surface-container rounded-lg border border-outline-variant/10">
+                    <div class="flex items-center justify-between text-on-surface-variant mb-1">
+                        <span class="text-[10px] font-bold">通讯延迟</span>
+                        <span class="material-symbols-outlined text-sm text-primary">network_check</span>
+                    </div>
+                    <div class="text-2xl font-black text-on-surface font-mono">24<span class="text-xs ml-0.5">ms</span></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="p-6 border-b border-outline-variant/10 flex-1 flex flex-col">
+            <h2 class="section-title mb-4">
+                <span class="material-symbols-outlined text-base">pan_tool</span>
+                人工介入与状态建议
+            </h2>
+            <div class="space-y-2.5">
+                <button class="action-button control-button control-button-primary w-full flex items-center justify-center gap-2 active:scale-[0.97]" data-tone="info" data-message="已提交远程处理请求，值守人员将优先接入当前任务并给出下一步指令。" data-title="远程处理已请求" type="button">
+                    <span class="material-symbols-outlined text-base">support_agent</span>
+                    请求人工远程处理
+                </button>
+                <button class="action-button control-button control-button-secondary w-full flex items-center justify-center gap-2 active:scale-[0.97]" data-tone="info" data-message="已发起重新规划路径，系统将结合当前楼层拥堵与电梯状态重新计算路线。" data-title="路径重规划中" type="button">
+                    <span class="material-symbols-outlined text-base">alt_route</span>
+                    重新规划路径
+                </button>
+                <button class="action-button control-button control-button-secondary w-full flex items-center justify-center gap-2 active:scale-[0.97]" data-tone="warn" data-message="已通知现场协助人员前往 12F A16 会议室附近待命，系统将持续同步任务位置。" data-title="现场协助已通知" type="button">
+                    <span class="material-symbols-outlined text-base">person_search</span>
+                    请求现场人工协助
+                </button>
+            </div>
+            <div class="status-toast mt-4 border rounded-lg p-4 min-h-[92px]" data-tone="info" id="actionFeedback">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-sm text-primary" id="feedbackIcon">info</span>
+                    <span class="text-xs font-black tracking-widest uppercase text-on-surface" id="feedbackTitle">状态解释</span>
+                </div>
+                <p class="text-xs leading-6 text-on-surface-variant" id="feedbackMessage">当前任务处于执行中。机器人正在前往 12 层，并等待进入 E04 电梯；当前无需人工介入，可继续观察任务状态流转。</p>
+            </div>
+
+            <div class="danger-zone">
+                <p class="danger-zone-label">危险操作</p>
+                <button class="action-button danger-button w-full flex items-center justify-center gap-2 active:scale-95" data-tone="danger" data-message="已触发紧急停机预案。机器人将保持原地锁定，系统同步标记当前任务为高风险，等待人工确认。" data-title="紧急停机已触发" type="button">
+                    <span class="material-symbols-outlined text-base">dangerous</span>
+                    紧急停机（E-STOP）
+                </button>
+                <p class="mt-2 text-[9px] text-center text-error/60 font-bold uppercase tracking-widest">仅在物理危险情形下触发</p>
+            </div>
+        </section>
+
+        <section class="p-6 h-64 flex flex-col bg-surface-container-lowest">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="section-title">
+                    <span class="material-symbols-outlined text-base text-primary">list_alt</span>
+                    全量运行日志
+                </h2>
+                <span class="text-[9px] text-on-surface-variant/40 font-mono">DEBUG: OFF</span>
+            </div>
+            <div class="flex-1 bg-black/20 border border-outline-variant/10 p-3 rounded-lg font-mono text-[10px] overflow-y-auto space-y-3 custom-scrollbar">
+                <div class="flex gap-2">
+                    <span class="text-on-surface-variant/30 shrink-0">14:28:12</span>
+                    <p class="text-primary/80">路径重标定：障碍 B-02 已清除。</p>
+                </div>
+                <div class="flex gap-2">
+                    <span class="text-on-surface-variant/30 shrink-0">14:27:50</span>
+                    <p class="text-on-surface-variant">进入避障优先模式。</p>
+                </div>
+                <div class="flex gap-2 border-l-2 border-secondary pl-2 bg-secondary/5">
+                    <span class="text-on-surface-variant/30 shrink-0">14:25:32</span>
+                    <p class="text-secondary/80 font-bold">信号强度：100%（12F Lobby AP-04）</p>
+                </div>
+                <div class="flex gap-2">
+                    <span class="text-on-surface-variant/30 shrink-0">14:24:15</span>
+                    <p class="text-on-surface-variant">电梯 E04 已到达 1F。</p>
+                </div>
+                <div class="flex gap-2">
+                    <span class="text-on-surface-variant/30 shrink-0">14:20:01</span>
+                    <p class="text-on-surface-variant">正在请求电梯 E04...</p>
+                </div>
+            </div>
+        </section>
+    </aside>
+</div>
+<script>
+    const feedbackConfig = {
+        info: { icon: 'info', iconClass: 'text-primary' },
+        success: { icon: 'check_circle', iconClass: 'text-secondary' },
+        warn: { icon: 'warning', iconClass: 'text-tertiary' },
+        danger: { icon: 'error', iconClass: 'text-error' }
+    };
+
+    const feedbackEl = document.getElementById('actionFeedback');
+    const feedbackIcon = document.getElementById('feedbackIcon');
+    const feedbackTitle = document.getElementById('feedbackTitle');
+    const feedbackMessage = document.getElementById('feedbackMessage');
+    const actionButtons = document.querySelectorAll('.action-button');
+
+    actionButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            const tone = button.dataset.tone || 'info';
+            const title = button.dataset.title || '状态更新';
+            const message = button.dataset.message || '操作已记录。';
+            const config = feedbackConfig[tone] || feedbackConfig.info;
+
+            feedbackEl.dataset.tone = tone;
+            feedbackTitle.textContent = title;
+            feedbackMessage.textContent = message;
+            feedbackIcon.textContent = config.icon;
+            feedbackIcon.className = `material-symbols-outlined text-sm ${config.iconClass}`;
+        });
+    });
+
+    const timelineSteps = Array.from(document.querySelectorAll('.timeline-step'));
+    const timelineProgress = document.getElementById('timelineProgress');
+    const progressBar = document.getElementById('progressBar');
+    const progressValue = document.getElementById('progressValue');
+    const currentPhaseText = document.getElementById('currentPhaseText');
+    const etaValue = document.getElementById('etaValue');
+
+    function setActiveStep(activeIndex) {
+        timelineSteps.forEach((step, index) => {
+            let state = 'upcoming';
+            if (index < activeIndex) state = 'done';
+            if (index === activeIndex) state = 'active';
+            step.dataset.state = state;
+        });
+
+        const activeStep = timelineSteps[activeIndex];
+        const progress = activeStep.dataset.progress || '0';
+        const phase = activeStep.dataset.phase || '未定义步骤';
+        const eta = activeStep.dataset.eta || '--:--';
+
+        timelineProgress.style.width = `${progress}%`;
+        progressBar.style.width = `${progress}%`;
+        progressValue.textContent = `${progress}%`;
+        currentPhaseText.textContent = phase;
+        etaValue.textContent = eta;
+    }
+
+    timelineSteps.forEach((step, index) => {
+        step.addEventListener('click', () => setActiveStep(index));
+    });
+</script>
+</body>
+</html>
